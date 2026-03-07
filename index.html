@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>KY-SHIRO — SMS OTP API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+:root{
+  --ink:#f0ede8;
+  --ink2:#9a9590;
+  --ink3:#504d48;
+  --ink4:#2a2825;
+  --paper:#0e0d0b;
+  --card:#161512;
+  --card2:#1d1c19;
+  --line:#2a2825;
+  --green:#b8ff6e;
+  --green2:#7acc3a;
+  --red:#ff6b6b;
+  --blue:#6eb8ff;
+  --yellow:#ffd666;
+  --serif:'Bricolage Grotesque',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+  --r:10px;
+}
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);overflow-x:hidden;line-height:1.5}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--paper)}
+::-webkit-scrollbar-thumb{background:var(--green);border-radius:2px}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+
+/* ── NAV ── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;
+  background:rgba(14,13,11,.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);
+  transition:border-color .3s;
+}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-logo-mark{
+  width:30px;height:30px;border-radius:7px;
+  background:var(--green);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.nav-logo-mark svg{width:18px;height:18px}
+.nav-name{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.5px;color:var(--ink)}
+.nav-name b{color:var(--green)}
+.nav-r{display:flex;align-items:center;gap:6px}
+.nav-link{
+  font-size:13px;font-weight:500;color:var(--ink2);
+  padding:5px 10px;border-radius:6px;
+  transition:color .2s,background .2s;
+}
+.nav-link:hover{color:var(--ink);background:var(--card2)}
+/* 3-dot */
+.dot-btn{
+  width:34px;height:34px;border-radius:7px;
+  border:1px solid var(--line);background:var(--card);
+  color:var(--ink2);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;position:relative;
+}
+.dot-btn:hover{border-color:var(--green);color:var(--green)}
+.dot-menu{
+  position:absolute;top:calc(100% + 6px);right:0;
+  background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:5px;min-width:195px;
+  display:none;
+  box-shadow:0 16px 40px rgba(0,0,0,.6);
+  z-index:10;
+}
+.dot-menu.show{display:block;animation:pop .15s ease}
+@keyframes pop{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}
+.dm-item{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 11px;border-radius:7px;
+  font-size:13px;font-weight:500;color:var(--ink2);
+  transition:all .15s;cursor:pointer;
+}
+.dm-item:hover{background:var(--card2);color:var(--ink)}
+.dm-icon{width:28px;height:28px;border-radius:6px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.dm-sep{height:1px;background:var(--line);margin:3px 0}
+@media(max-width:600px){.nav-link{display:none}}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:flex-start;
+  padding:100px 20px 60px;
+  max-width:1040px;margin:0 auto;
+  position:relative;
+}
+/* big faint text bg */
+.hero-bg-text{
+  position:absolute;right:-20px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:clamp(80px,14vw,160px);font-weight:600;
+  color:rgba(184,255,110,.04);
+  letter-spacing:-5px;pointer-events:none;user-select:none;white-space:nowrap;
+  line-height:1;
+}
+.hero-chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 12px;border-radius:100px;
+  background:rgba(184,255,110,.08);border:1px solid rgba(184,255,110,.18);
+  font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:1.2px;
+  text-transform:uppercase;margin-bottom:24px;
+}
+.chip-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(184,255,110,.5)}50%{opacity:.6;box-shadow:0 0 0 5px rgba(184,255,110,0)}}
+.hero-title{
+  font-size:clamp(44px,7.5vw,88px);font-weight:800;
+  line-height:.95;letter-spacing:-3px;
+  margin-bottom:20px;
+}
+.hero-title .t1{display:block;color:var(--ink)}
+.hero-title .t2{display:block;color:var(--green)}
+.hero-sub{
+  font-family:var(--mono);font-size:12px;color:var(--ink3);
+  letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;
+}
+.hero-desc{
+  max-width:500px;color:var(--ink2);font-size:16px;line-height:1.7;
+  margin-bottom:36px;
+}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap}
+.btn-main{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 22px;border-radius:8px;
+  background:var(--green);color:#0e0d0b;
+  font-weight:700;font-size:14px;letter-spacing:.2px;
+  transition:all .2s;
+}
+.btn-main:hover{background:#c8ff80;transform:translateY(-2px);box-shadow:0 8px 20px rgba(184,255,110,.25)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 22px;border-radius:8px;
+  border:1px solid var(--line);color:var(--ink2);
+  font-weight:600;font-size:14px;
+  transition:all .2s;
+}
+.btn-ghost:hover{border-color:var(--ink2);color:var(--ink);transform:translateY(-2px)}
+
+/* ── STATUS BAR ── */
+.status-bar{
+  display:flex;align-items:center;gap:0;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;flex-wrap:wrap;
+  margin:0 20px;
+  max-width:1040px;margin:0 auto 0;
+}
+.sb-item{
+  flex:1;min-width:140px;
+  padding:16px 20px;
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;gap:4px;
+}
+.sb-item:last-child{border-right:none}
+.sb-label{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:1.5px;text-transform:uppercase}
+.sb-val{font-size:14px;font-weight:600;color:var(--ink)}
+.sb-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.online{background:var(--green);animation:blink 2s infinite}
+.offline{background:var(--red)}
+.checking{background:var(--yellow);animation:blink 1s infinite}
+@media(max-width:640px){.sb-item{min-width:calc(50% - 1px)}.sb-item:nth-child(2){border-right:none}.sb-item:nth-child(3){border-top:1px solid var(--line);border-right:1px solid var(--line)}.sb-item:nth-child(4){border-top:1px solid var(--line);border-right:none}}
+
+/* ── SECTION ── */
+.section{padding:72px 0}
+.section-wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.s-label{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px}
+.s-title{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:14px}
+.s-desc{color:var(--ink2);font-size:15px;line-height:1.7;max-width:520px;margin-bottom:44px}
+.hr{height:1px;background:var(--line);margin:0 20px}
+
+/* ── ABOUT CARDS ── */
+.about-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.about-card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:24px;transition:all .25s;position:relative;overflow:hidden;
+}
+.about-card::after{
+  content:'';position:absolute;inset:0;border-radius:var(--r);
+  background:radial-gradient(circle at 0% 0%,rgba(184,255,110,.06),transparent 60%);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.about-card:hover{border-color:rgba(184,255,110,.25);transform:translateY(-3px)}
+.about-card:hover::after{opacity:1}
+.ac-em{font-size:26px;margin-bottom:14px}
+.ac-t{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.ac-d{font-size:13px;color:var(--ink2);line-height:1.6}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:48px}
+.stat{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:24px;text-align:center;
+}
+.stat-n{font-family:var(--mono);font-size:38px;font-weight:600;color:var(--green);letter-spacing:-2px;line-height:1}
+.stat-l{font-size:13px;color:var(--ink2);margin-top:6px}
+
+/* ── DOCS ── */
+.ep-list{display:flex;flex-direction:column;gap:12px}
+.ep{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .2s}
+.ep:hover{border-color:var(--line)}
+.ep-head{
+  padding:14px 18px;display:flex;align-items:center;gap:10px;
+  cursor:pointer;user-select:none;
+}
+.ep-method{
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  padding:3px 8px;border-radius:5px;letter-spacing:.8px;flex-shrink:0;
+}
+.GET{background:rgba(184,255,110,.1);color:var(--green);border:1px solid rgba(184,255,110,.2)}
+.ep-path{font-family:var(--mono);font-size:13px;color:var(--ink);flex:1}
+.ep-short{font-size:13px;color:var(--ink2)}
+.ep-arrow{color:var(--ink3);font-size:11px;transition:transform .2s;flex-shrink:0}
+.ep-arrow.open{transform:rotate(180deg)}
+.ep-body{display:none;border-top:1px solid var(--line);padding:0 18px 18px}
+.ep-body.open{display:block}
+.pt{margin-top:16px;font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px}
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable th{text-align:left;padding:7px 10px;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--line)}
+.ptable td{padding:9px 10px;border-bottom:1px solid rgba(42,40,37,.5);color:var(--ink2);vertical-align:top;line-height:1.5}
+.ptable td:first-child{font-family:var(--mono);color:var(--blue);white-space:nowrap}
+.br{display:inline-block;padding:2px 7px;border-radius:4px;font-family:var(--mono);font-size:9px;letter-spacing:.5px}
+.br-r{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red)}
+.br-o{background:rgba(110,184,255,.08);border:1px solid rgba(110,184,255,.15);color:var(--blue)}
+.code{
+  background:#0a0908;border:1px solid var(--line);border-radius:8px;
+  padding:14px;font-family:var(--mono);font-size:12px;color:var(--ink2);
+  overflow-x:auto;line-height:1.7;position:relative;white-space:pre;
+}
+.code .k{color:var(--blue)}
+.code .s{color:#a5d6ff}
+.code .ky{color:var(--green)}
+.code .v{color:var(--yellow)}
+.code .c{color:var(--ink3)}
+.cp-btn{
+  position:absolute;top:10px;right:10px;
+  padding:3px 9px;border-radius:5px;
+  background:var(--card2);border:1px solid var(--line);
+  color:var(--ink3);font-size:10px;font-family:var(--mono);
+  transition:all .2s;cursor:pointer;
+}
+.cp-btn:hover{color:var(--ink);border-color:var(--green)}
+@media(max-width:600px){.ep-short{display:none}}
+
+/* ── CONTACT ── */
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.cc{
+  display:flex;align-items:center;gap:14px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px;text-decoration:none;
+  transition:all .25s;
+}
+.cc:hover{border-color:rgba(184,255,110,.25);transform:translateY(-3px);background:var(--card2)}
+.cc-icon{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.bg-tg{background:rgba(110,184,255,.1)}
+.bg-wa{background:rgba(184,255,110,.08)}
+.bg-dev{background:rgba(255,214,102,.08)}
+.cc-t{font-size:14px;font-weight:700;color:var(--ink)}
+.cc-s{font-size:12px;color:var(--ink2);margin-top:2px}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--line);padding:28px 20px;
+  text-align:center;
+}
+.foot-name{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.foot-name b{color:var(--green)}
+.foot-sub{font-size:13px;color:var(--ink3)}
+.foot-sub a{color:var(--ink2)}
+.foot-sub a:hover{color:var(--green)}
+
+/* ── MODAL ── */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  backdrop-filter:blur(8px);z-index:1000;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.overlay.show{display:flex}
+.modal{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:28px;max-width:440px;width:100%;position:relative;
+  animation:pop .18s ease;
+}
+.modal-x{
+  position:absolute;top:14px;right:14px;
+  width:30px;height:30px;border-radius:6px;
+  background:var(--card2);border:1px solid var(--line);
+  color:var(--ink2);font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;cursor:pointer;
+}
+.modal-x:hover{color:var(--red);border-color:var(--red)}
+.modal-t{font-size:18px;font-weight:800;margin-bottom:6px}
+.modal-d{font-size:14px;color:var(--ink2);line-height:1.6;margin-bottom:20px}
+.dev-card{
+  background:var(--card2);border:1px solid var(--line);border-radius:10px;
+  padding:16px;display:flex;align-items:center;gap:14px;
+}
+.dev-av{
+  width:46px;height:46px;border-radius:10px;
+  background:linear-gradient(135deg,var(--green),#6eb8ff);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:16px;font-weight:700;color:#0e0d0b;
+  flex-shrink:0;
+}
+.dev-n{font-size:15px;font-weight:700;color:var(--ink)}
+.dev-r{font-family:var(--mono);font-size:11px;color:var(--ink2);margin-top:2px}
+
+/* ── ANIM ── */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .5s ease,transform .5s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-brand">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 3v12M3 9l5-6M3 9l5 6" stroke="#0e0d0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11 3l2.5 4.5L16 3M13.5 7.5V15" stroke="#0e0d0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="nav-name">KY-<b>SHIRO</b></span>
+  </div>
+  <div class="nav-r">
+    <a class="nav-link" href="#about">Tentang</a>
+    <a class="nav-link" href="#docs">Docs</a>
+    <a class="nav-link" href="#contact">Kontak</a>
+    <button class="dot-btn" id="dotBtn" onclick="toggleDot(event)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="2.5" r="1.4" fill="currentColor"/>
+        <circle cx="7" cy="7" r="1.4" fill="currentColor"/>
+        <circle cx="7" cy="11.5" r="1.4" fill="currentColor"/>
+      </svg>
+      <div class="dot-menu" id="dotMenu">
+        <a class="dm-item" href="#docs"><span class="dm-icon">📚</span>Dokumentasi</a>
+        <a class="dm-item" href="#about"><span class="dm-icon">🔍</span>Tentang API</a>
+        <a class="dm-item" href="#contact"><span class="dm-icon">💬</span>Hubungi Kami</a>
+        <div class="dm-sep"></div>
+        <div class="dm-item" onclick="openModal('devModal')"><span class="dm-icon">👤</span>Developer</div>
+        <div class="dm-item" onclick="checkStatus(true)"><span class="dm-icon">🟢</span>Cek Status</div>
+        <div class="dm-sep"></div>
+        <a class="dm-item" href="https://www.ivasms.com" target="_blank"><span class="dm-icon">🔗</span>iVAS SMS</a>
+        <a class="dm-item" href="https://vercel.com" target="_blank"><span class="dm-icon">▲</span>Vercel</a>
+      </div>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section style="position:relative;overflow:hidden">
+  <div class="hero reveal" id="hero">
+    <div class="hero-bg-text">API</div>
+    <div class="hero-chip"><span class="chip-dot"></span>SMS · OTP · API</div>
+    <h1 class="hero-title">
+      <span class="t1">KY-SHIRO</span>
+      <span class="t2">OFFICIAL</span>
+    </h1>
+    <p class="hero-sub">Multi-Account · Multi-Range · Real-time</p>
+    <p class="hero-desc">API buat ambil OTP dari iVAS SMS — support banyak akun sekaligus, semua range & negara, tinggal request langsung dapat kodenya.</p>
+    <div class="hero-cta">
+      <a href="#docs" class="btn-main">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 3.5h11M2 7.5h7M2 11.5h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Lihat Dokumentasi
+      </a>
+      <button class="btn-ghost" onclick="checkStatus(true)">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M7.5 4.5v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Cek Status Live
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- STATUS BAR -->
+<div class="wrap" style="padding-bottom:0">
+  <div class="status-bar reveal">
+    <div class="sb-item">
+      <div class="sb-label">Status API</div>
+      <div class="sb-val"><span class="sb-dot checking" id="sDot"></span><span id="sText">Mengecek...</span></div>
+    </div>
+    <div class="sb-item">
+      <div class="sb-label">iVAS Login</div>
+      <div class="sb-val" id="sLogin">—</div>
+    </div>
+    <div class="sb-item">
+      <div class="sb-label">Developer</div>
+      <div class="sb-val">Kiki Faizal</div>
+    </div>
+    <div class="sb-item">
+      <div class="sb-label">Versi</div>
+      <div class="sb-val" style="font-family:var(--mono);color:var(--green);font-size:13px">v2.0</div>
+    </div>
+  </div>
+</div>
+
+<div class="hr" style="margin-top:64px"></div>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="section-wrap">
+    <div class="s-label">// Tentang</div>
+    <h2 class="s-title reveal">Apa itu KY-SHIRO API?</h2>
+    <p class="s-desc reveal">API ini nyambung langsung ke iVAS SMS, support multi-akun biar makin banyak nomor yang bisa dipantau. Cocok banget buat forward OTP ke Telegram bot atau keperluan lain yang butuh kode SMS masuk.</p>
+
+    <div class="stats-row reveal">
+      <div class="stat"><div class="stat-n" id="stRanges">—</div><div class="stat-l">Range Aktif</div></div>
+      <div class="stat"><div class="stat-n" id="stNumbers">—</div><div class="stat-l">Nomor Tersedia</div></div>
+      <div class="stat"><div class="stat-n">8</div><div class="stat-l">Endpoint API</div></div>
+      <div class="stat"><div class="stat-n">∞</div><div class="stat-l">Negara Support</div></div>
+    </div>
+
+    <div class="about-grid reveal">
+      <div class="about-card"><div class="ac-em">⚡</div><div class="ac-t">Real-time</div><div class="ac-d">OTP yang masuk langsung bisa diambil tanpa delay, semua range sekaligus.</div></div>
+      <div class="about-card"><div class="ac-em">👥</div><div class="ac-t">Multi-Akun</div><div class="ac-d">Bisa login ke banyak akun iVAS sekaligus, semua range dari semua akun digabung jadi satu response.</div></div>
+      <div class="about-card"><div class="ac-em">🌍</div><div class="ac-t">Multi Negara</div><div class="ac-d">Ivory Coast, Zimbabwe, Togo, Madagascar — semua range yang ada di akun lo masuk semua.</div></div>
+      <div class="about-card"><div class="ac-em">🤖</div><div class="ac-t">Bot-ready</div><div class="ac-d">Response JSON bersih dan konsisten, langsung bisa dipakai sama Telegram bot tanpa preprocessing.</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- DOCS -->
+<section class="section" id="docs">
+  <div class="section-wrap">
+    <div class="s-label">// Dokumentasi</div>
+    <h2 class="s-title reveal">Semua Endpoint</h2>
+    <p class="s-desc reveal">Base URL: <code style="font-family:var(--mono);color:var(--green);font-size:13px;background:var(--card);padding:2px 8px;border-radius:5px">https://apishiro.vercel.app</code></p>
+
+    <div class="ep-list reveal">
+
+      <!-- /sms -->
+      <div class="ep">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/sms</span>
+          <span class="ep-short">Ambil OTP berdasarkan tanggal</span>
+          <span class="ep-arrow">▾</span>
+        </div>
+        <div class="ep-body">
+          <div class="pt">Parameter</div>
+          <table class="ptable">
+            <tr><th>Nama</th><th>Tipe</th><th>Status</th><th>Keterangan</th></tr>
+            <tr><td>date</td><td>string</td><td><span class="br br-r">WAJIB</span></td><td>Format DD/MM/YYYY — tanggal yang dicek</td></tr>
+            <tr><td>mode</td><td>string</td><td><span class="br br-o">OPSIONAL</span></td><td><code>received</code> / <code>live</code> / <code>both</code> — default: received</td></tr>
+          </table>
+          <div class="pt">Contoh Request</div>
+          <div class="code" style="position:relative"><button class="cp-btn" onclick="cp(this)">copy</button>GET /sms?<span class="ky">date</span>=<span class="s">07/03/2026</span>&<span class="ky">mode</span>=<span class="s">received</span></div>
+          <div class="pt">Contoh Response</div>
+          <div class="code">{
+  <span class="ky">"status"</span>: <span class="s">"success"</span>,
+  <span class="ky">"mode"</span>: <span class="s">"received"</span>,
+  <span class="ky">"total"</span>: <span class="v">5</span>,
+  <span class="ky">"accounts_used"</span>: <span class="v">2</span>,
+  <span class="ky">"otp_messages"</span>: [
+    {
+      <span class="ky">"range"</span>: <span class="s">"IVORY COAST 3878"</span>,
+      <span class="ky">"phone_number"</span>: <span class="s">"2250711220970"</span>,
+      <span class="ky">"otp_message"</span>: <span class="s">"Your WhatsApp code: 338-640"</span>,
+      <span class="ky">"source"</span>: <span class="s">"received"</span>,
+      <span class="ky">"account"</span>: <span class="s">"akun1@gmail.com"</span>
+    }
+  ]
+}</div>
+        </div>
+      </div>
+
+      <!-- /health -->
+      <div class="ep">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/health</span>
+          <span class="ep-short">Cek status login semua akun</span>
+          <span class="ep-arrow">▾</span>
+        </div>
+        <div class="ep-body">
+          <p style="color:var(--ink2);font-size:14px;margin-top:14px">Cek apakah API berhasil login ke iVAS. Kalau <code style="color:var(--green)">login: "success"</code> berarti siap terima request.</p>
+          <div class="pt">Contoh Response</div>
+          <div class="code">{
+  <span class="ky">"status"</span>: <span class="s">"ok"</span>,
+  <span class="ky">"login"</span>: <span class="s">"success"</span>,
+  <span class="ky">"accounts_ok"</span>: <span class="v">2</span>,
+  <span class="ky">"accounts_total"</span>: <span class="v">2</span>,
+  <span class="ky">"details"</span>: [
+    { <span class="ky">"email"</span>: <span class="s">"akun1@gmail.com"</span>, <span class="ky">"login"</span>: <span class="s">"success"</span> },
+    { <span class="ky">"email"</span>: <span class="s">"akun2@gmail.com"</span>, <span class="ky">"login"</span>: <span class="s">"success"</span> }
+  ]
+}</div>
+        </div>
+      </div>
+
+      <!-- /accounts -->
+      <div class="ep">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/accounts</span>
+          <span class="ep-short">List akun terdaftar</span>
+          <span class="ep-arrow">▾</span>
+        </div>
+        <div class="ep-body">
+          <p style="color:var(--ink2);font-size:14px;margin-top:14px">Lihat berapa akun yang terdaftar di API. Password tidak ditampilkan.</p>
+          <div class="pt">Contoh Response</div>
+          <div class="code">{
+  <span class="ky">"total"</span>: <span class="v">2</span>,
+  <span class="ky">"accounts"</span>: [
+    { <span class="ky">"index"</span>: <span class="v">1</span>, <span class="ky">"email"</span>: <span class="s">"akun1@gmail.com"</span> },
+    { <span class="ky">"index"</span>: <span class="v">2</span>, <span class="ky">"email"</span>: <span class="s">"akun2@gmail.com"</span> }
+  ]
+}</div>
+        </div>
+      </div>
+
+      <!-- /test -->
+      <div class="ep">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/test</span>
+          <span class="ep-short">Cek semua range & nomor</span>
+          <span class="ep-arrow">▾</span>
+        </div>
+        <div class="ep-body">
+          <div class="pt">Parameter</div>
+          <table class="ptable">
+            <tr><th>Nama</th><th>Tipe</th><th>Status</th><th>Keterangan</th></tr>
+            <tr><td>date</td><td>string</td><td><span class="br br-o">OPSIONAL</span></td><td>Format DD/MM/YYYY — default: hari ini</td></tr>
+          </table>
+          <div class="pt">Contoh Request</div>
+          <div class="code" style="position:relative"><button class="cp-btn" onclick="cp(this)">copy</button>GET /test?<span class="ky">date</span>=<span class="s">07/03/2026</span></div>
+        </div>
+      </div>
+
+      <!-- /test/sms -->
+      <div class="ep">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/test/sms</span>
+          <span class="ep-short">Cek OTP untuk 1 nomor spesifik</span>
+          <span class="ep-arrow">▾</span>
+        </div>
+        <div class="ep-body">
+          <div class="pt">Parameter</div>
+          <table class="ptable">
+            <tr><th>Nama</th><th>Tipe</th><th>Status</th><th>Keterangan</th></tr>
+            <tr><td>date</td><td>string</td><td><span class="br br-o">OPSIONAL</span></td><td>Format DD/MM/YYYY</td></tr>
+            <tr><td>range</td><td>string</td><td><span class="br br-r">WAJIB</span></td><td>Nama range, contoh: IVORY COAST 3878</td></tr>
+            <tr><td>number</td><td>string</td><td><span class="br br-r">WAJIB</span></td><td>Nomor telepon, contoh: 2250711220970</td></tr>
+          </table>
+          <div class="pt">Contoh Request</div>
+          <div class="code" style="position:relative"><button class="cp-btn" onclick="cp(this)">copy</button>GET /test/sms?<span class="ky">date</span>=<span class="s">07/03/2026</span>&<span class="ky">range</span>=<span class="s">IVORY COAST 3878</span>&<span class="ky">number</span>=<span class="s">2250711220970</span></div>
+        </div>
+      </div>
+
+      <!-- /debug endpoints -->
+      <div class="ep">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/debug/ranges-raw &nbsp; /debug/numbers &nbsp; /debug/sms</span>
+          <span class="ep-short">Debug endpoints</span>
+          <span class="ep-arrow">▾</span>
+        </div>
+        <div class="ep-body">
+          <p style="color:var(--ink2);font-size:14px;margin-top:14px">Tiga endpoint khusus buat debug kalau ada yang tidak kedeteksi atau SMS tidak masuk.</p>
+          <div class="pt">Endpoint Debug</div>
+          <table class="ptable">
+            <tr><th>Endpoint</th><th>Parameter Wajib</th><th>Fungsi</th></tr>
+            <tr><td>/debug/ranges-raw</td><td>date</td><td>Raw HTML dari iVAS buat cek kenapa range tidak muncul</td></tr>
+            <tr><td>/debug/numbers</td><td>date, range</td><td>Cek nomor dari range tertentu beserta raw response</td></tr>
+            <tr><td>/debug/sms</td><td>date, range, number</td><td>Cek raw response SMS untuk nomor tertentu</td></tr>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- end ep-list -->
+
+    <!-- Multi-account guide -->
+    <div style="margin-top:32px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:24px" class="reveal">
+      <div class="s-label" style="margin-bottom:10px">// Cara Tambah Akun</div>
+      <p style="color:var(--ink2);font-size:14px;line-height:1.7;margin-bottom:14px">Buka <code style="font-family:var(--mono);color:var(--green)">app.py</code>, cari bagian <code style="font-family:var(--mono);color:var(--green)">load_accounts()</code>, tambah akun baru di list:</p>
+      <div class="code">return [
+    {<span class="ky">"email"</span>: <span class="s">"akun1@gmail.com"</span>, <span class="ky">"password"</span>: <span class="s">"password1"</span>},
+    {<span class="ky">"email"</span>: <span class="s">"akun2@gmail.com"</span>, <span class="ky">"password"</span>: <span class="s">"password2"</span>},  <span class="c"># ← tambah di sini</span>
+    {<span class="ky">"email"</span>: <span class="s">"akun3@gmail.com"</span>, <span class="ky">"password"</span>: <span class="s">"password3"</span>},  <span class="c"># ← atau di sini</span>
+]</div>
+      <p style="color:var(--ink2);font-size:13px;margin-top:12px">Atau pakai environment variable di Vercel: <code style="font-family:var(--mono);color:var(--yellow)">IVAS_ACCOUNTS = email1:pass1,email2:pass2</code></p>
+    </div>
+
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+  <div class="section-wrap">
+    <div class="s-label">// Hubungi Kami</div>
+    <h2 class="s-title reveal">Ada yang mau ditanya?</h2>
+    <p class="s-desc reveal">Bug, request fitur, atau sekedar mau kenalan — langsung aja kontak developernya.</p>
+    <div class="contact-grid reveal">
+      <a href="https://t.me/username_kiki" target="_blank" class="cc">
+        <div class="cc-icon bg-tg">✈️</div>
+        <div><div class="cc-t">Telegram</div><div class="cc-s">@KikiFaizal</div></div>
+      </a>
+      <a href="https://wa.me/62xxxxxxxx" target="_blank" class="cc">
+        <div class="cc-icon bg-wa">💬</div>
+        <div><div class="cc-t">WhatsApp</div><div class="cc-s">Chat via WA</div></div>
+      </a>
+      <div class="cc" onclick="openModal('devModal')" style="cursor:pointer">
+        <div class="cc-icon bg-dev">👤</div>
+        <div><div class="cc-t">Developer</div><div class="cc-s">Kiki Faizal</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-name">KY-<b>SHIRO</b> OFFICIAL</div>
+  <div class="foot-sub">
+    Made by <a href="#">Kiki Faizal</a> &nbsp;·&nbsp;
+    Powered by <a href="https://www.ivasms.com" target="_blank">iVAS SMS</a> &nbsp;·&nbsp;
+    Hosted on <a href="https://vercel.com" target="_blank">Vercel</a>
+  </div>
+</footer>
+
+<!-- MODAL DEVELOPER -->
+<div class="overlay" id="devModal" onclick="if(event.target===this)closeModal('devModal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('devModal')">✕</button>
+    <div class="modal-t">Developer</div>
+    <div class="modal-d">Orang di balik KY-SHIRO API. Kalau ada masalah langsung tembak aja.</div>
+    <div class="dev-card">
+      <div class="dev-av">KF</div>
+      <div>
+        <div class="dev-n">Kiki Faizal</div>
+        <div class="dev-r">// Backend · API Engineer</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL STATUS -->
+<div class="overlay" id="statusModal" onclick="if(event.target===this)closeModal('statusModal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('statusModal')">✕</button>
+    <div class="modal-t">Status Live</div>
+    <div id="statusModalBody" style="color:var(--ink2);font-size:14px">Mengecek...</div>
+  </div>
+</div>
+
+<script>
+const API = 'https://apishiro.vercel.app';
+
+// ── MENU DOT ──
+function toggleDot(e){
+  e.stopPropagation();
+  document.getElementById('dotMenu').classList.toggle('show');
+}
+document.addEventListener('click',()=>document.getElementById('dotMenu').classList.remove('show'));
+
+// ── MODAL ──
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+
+// ── ENDPOINT TOGGLE ──
+function toggleEp(head){
+  const body=head.nextElementSibling, arr=head.querySelector('.ep-arrow');
+  body.classList.toggle('open'); arr.classList.toggle('open');
+}
+
+// ── COPY CODE ──
+function cp(btn){
+  const block=btn.closest('.code');
+  const text=block.innerText.replace(/^copy\n/,'').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✓'; btn.style.color='var(--green)';
+    setTimeout(()=>{btn.textContent='copy';btn.style.color=''},2000);
+  });
+}
+
+// ── STATUS CHECK ──
+async function checkStatus(openPopup=false){
+  const dot=document.getElementById('sDot');
+  const txt=document.getElementById('sText');
+  const login=document.getElementById('sLogin');
+  const body=document.getElementById('statusModalBody');
+
+  dot.className='sb-dot checking'; txt.textContent='Mengecek...'; login.textContent='...';
+  if(body) body.innerHTML='<span style="color:var(--ink2)">Menghubungi server...</span>';
+  if(openPopup) openModal('statusModal');
+
+  try {
+    const res=await fetch(API+'/health',{signal:AbortSignal.timeout(14000)});
+    const data=await res.json();
+    const ok=data.login==='success'||data.status==='ok';
+
+    if(ok){
+      dot.className='sb-dot online'; txt.textContent='Online'; login.textContent='✅ Login OK';
+      const details=(data.details||[]).map(d=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px">
+          <span style="width:7px;height:7px;border-radius:50%;background:${d.login==='success'?'var(--green)':'var(--red)'};display:inline-block;flex-shrink:0"></span>
+          <span style="font-family:var(--mono);color:var(--ink2)">${d.email}</span>
+          <span style="margin-left:auto;color:${d.login==='success'?'var(--green)':'var(--red)'};font-weight:600">${d.login==='success'?'OK':'GAGAL'}</span>
+        </div>`).join('');
+      if(body) body.innerHTML=`
+        <div style="display:flex;align-items:center;gap:10px;padding:14px;background:rgba(184,255,110,.06);border:1px solid rgba(184,255,110,.15);border-radius:9px;margin-bottom:14px">
+          <span style="width:10px;height:10px;border-radius:50%;background:var(--green);animation:blink 2s infinite;flex-shrink:0"></span>
+          <div><div style="font-weight:700;color:var(--green)">API Online</div><div style="font-size:12px;color:var(--ink2);margin-top:2px">${data.accounts_ok||1} akun aktif · iVAS terhubung</div></div>
+        </div>
+        <div>${details}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:10px">Checked: ${new Date().toLocaleTimeString('id-ID')}</div>`;
+
+      // update stats
+      try{
+        const td=await fetch(API+'/test?date='+todayStr(),{signal:AbortSignal.timeout(20000)});
+        const dd=await td.json();
+        if(dd.total_ranges) document.getElementById('stRanges').textContent=dd.total_ranges;
+        if(dd.total_numbers) document.getElementById('stNumbers').textContent=dd.total_numbers;
+      }catch(e){}
+
+    } else throw new Error('gagal');
+
+  } catch(e){
+    dot.className='sb-dot offline'; txt.textContent='Offline'; login.textContent='❌ Gagal';
+    if(body) body.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;padding:14px;background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.15);border-radius:9px">
+        <span style="width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0"></span>
+        <div><div style="font-weight:700;color:var(--red)">API Offline</div><div style="font-size:12px;color:var(--ink2);margin-top:2px">Gagal konek ke server atau iVAS logout</div></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:10px">Checked: ${new Date().toLocaleTimeString('id-ID')}</div>`;
+  }
+}
+
+function todayStr(){
+  const d=new Date();
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+}
+
+// ── SCROLL REVEAL ──
+const ro=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')});
+},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// ── AUTO STATUS ON LOAD ──
+window.addEventListener('load',()=>{
+  document.getElementById('hero').classList.add('in');
+  document.querySelector('.status-bar').classList.add('in');
+  setTimeout(()=>checkStatus(false),600);
+});
+</script>
+</body>
+</html>
