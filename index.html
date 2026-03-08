@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>KY-SHIRO — Multi-Account iVAS SMS API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+/* ── THEME VARIABLES ── */
+[data-theme="dark"]{
+  --bg:#080b0f;
+  --bg2:#0d1117;
+  --card:#111620;
+  --card2:#161d2b;
+  --border:#1e2a3a;
+  --border2:#243040;
+  --ink:#e8edf5;
+  --ink2:#8899b0;
+  --ink3:#3d5068;
+  --accent:#4ade80;
+  --accent2:#22c55e;
+  --accent-dim:rgba(74,222,128,.08);
+  --accent-border:rgba(74,222,128,.2);
+  --red:#f87171;
+  --red-dim:rgba(248,113,113,.08);
+  --red-border:rgba(248,113,113,.2);
+  --blue:#60a5fa;
+  --yellow:#fbbf24;
+  --shadow:0 0 0 1px rgba(255,255,255,.03),0 20px 50px rgba(0,0,0,.6);
+}
+[data-theme="light"]{
+  --bg:#f4f6fa;
+  --bg2:#eef1f7;
+  --card:#ffffff;
+  --card2:#f0f3f8;
+  --border:#dde3ee;
+  --border2:#c8d2e4;
+  --ink:#1a2030;
+  --ink2:#5a6a82;
+  --ink3:#9ba8be;
+  --accent:#16a34a;
+  --accent2:#15803d;
+  --accent-dim:rgba(22,163,74,.08);
+  --accent-border:rgba(22,163,74,.25);
+  --red:#dc2626;
+  --red-dim:rgba(220,38,38,.06);
+  --red-border:rgba(220,38,38,.2);
+  --blue:#2563eb;
+  --yellow:#d97706;
+  --shadow:0 2px 8px rgba(0,0,0,.06),0 20px 50px rgba(0,0,0,.08);
+}
+
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Syne',sans-serif;
+  overflow-x:hidden;line-height:1.55;
+  transition:background .3s,color .3s;
+}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+code{font-family:'JetBrains Mono',monospace}
+
+/* ── NAV ── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  height:58px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  background:rgba(8,11,15,.88);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  transition:all .3s;
+}
+[data-theme="light"] #nav{background:rgba(244,246,250,.92)}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-logo{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  color:#080b0f;letter-spacing:-.5px;flex-shrink:0;
+}
+.nav-name{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;letter-spacing:.3px}
+.nav-name span{color:var(--accent)}
+.nav-r{display:flex;align-items:center;gap:6px}
+.nav-link{
+  font-size:13px;font-weight:500;color:var(--ink2);
+  padding:6px 12px;border-radius:7px;
+  transition:all .2s;
+}
+.nav-link:hover{color:var(--ink);background:var(--card)}
+/* theme toggle */
+.theme-btn{
+  width:36px;height:36px;border-radius:8px;
+  border:1px solid var(--border);background:var(--card);
+  color:var(--ink2);font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* 3-dot */
+.dot-btn{
+  width:36px;height:36px;border-radius:8px;
+  border:1px solid var(--border);background:var(--card);
+  color:var(--ink2);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;position:relative;
+}
+.dot-btn:hover{border-color:var(--accent);color:var(--accent)}
+.dot-menu{
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:6px;min-width:200px;
+  display:none;box-shadow:var(--shadow);z-index:10;
+}
+.dot-menu.show{display:block;animation:pop .15s ease}
+@keyframes pop{from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:none}}
+.dm-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;
+  font-size:13px;font-weight:500;color:var(--ink2);
+  transition:all .15s;cursor:pointer;
+}
+.dm-item:hover{background:var(--card2);color:var(--ink)}
+.dm-icon{width:28px;height:28px;border-radius:6px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.dm-sep{height:1px;background:var(--border);margin:4px 0}
+@media(max-width:600px){.nav-link{display:none}}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:flex-start;
+  padding:100px 24px 80px;
+  max-width:1060px;margin:0 auto;
+  position:relative;
+}
+.hero-bg{
+  position:absolute;right:0;top:0;bottom:0;width:55%;
+  pointer-events:none;overflow:hidden;
+}
+.hero-bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse at 70% 50%,black 20%,transparent 70%);
+  opacity:.4;
+}
+.hero-bg-glow{
+  position:absolute;right:-100px;top:50%;transform:translateY(-50%);
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(74,222,128,.12) 0%,transparent 70%);
+}
+.chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 14px;border-radius:100px;
+  background:var(--accent-dim);border:1px solid var(--accent-border);
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:28px;
+}
+.chip-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}50%{box-shadow:0 0 0 5px rgba(74,222,128,0)}}
+.hero-title{
+  font-size:clamp(40px,7vw,84px);font-weight:800;
+  line-height:.92;letter-spacing:-3px;margin-bottom:24px;
+}
+.hero-title .t1{display:block;color:var(--ink)}
+.hero-title .t2{display:block;color:var(--accent)}
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--ink3);letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;
+}
+.hero-desc{max-width:480px;color:var(--ink2);font-size:16px;line-height:1.75;margin-bottom:40px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn-main{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:13px 24px;border-radius:9px;
+  background:var(--accent);color:#080b0f;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:14px;
+  transition:all .2s;
+}
+.btn-main:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 8px 24px rgba(74,222,128,.3)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:13px 24px;border-radius:9px;
+  border:1px solid var(--border2);color:var(--ink2);
+  font-family:'Syne',sans-serif;font-weight:600;font-size:14px;
+  transition:all .2s;
+}
+.btn-ghost:hover{border-color:var(--ink2);color:var(--ink);transform:translateY(-2px)}
+
+/* ── STATUS BAR ── */
+.status-wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+.status-bar{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  overflow:hidden;
+}
+.sb-item{
+  padding:18px 22px;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;gap:5px;
+  transition:background .2s;
+}
+.sb-item:hover{background:var(--card2)}
+.sb-item:last-child{border-right:none}
+.sb-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:2px;text-transform:uppercase}
+.sb-val{font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px}
+.sb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.online{background:var(--accent);animation:pulse 2s infinite}
+.offline{background:var(--red)}
+.checking{background:var(--yellow);animation:pulse 1s infinite}
+@media(max-width:700px){
+  .status-bar{grid-template-columns:1fr 1fr}
+  .sb-item:nth-child(2){border-right:none}
+  .sb-item:nth-child(3){border-top:1px solid var(--border);border-right:1px solid var(--border)}
+  .sb-item:nth-child(4){border-top:1px solid var(--border);border-right:none}
+}
+@media(max-width:400px){
+  .status-bar{grid-template-columns:1fr}
+  .sb-item{border-right:none!important;border-top:1px solid var(--border)}
+  .sb-item:first-child{border-top:none}
+}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:0 24px}
+
+/* ── SECTION ── */
+.section{padding:80px 0}
+.section-wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+.s-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px}
+.s-title{font-size:clamp(24px,4vw,36px);font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:14px}
+.s-desc{color:var(--ink2);font-size:15px;line-height:1.75;max-width:520px;margin-bottom:48px}
+
+/* ── FEATURE CARDS ── */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.feat{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:26px;transition:all .25s;position:relative;overflow:hidden;
+}
+.feat::before{
+  content:'';position:absolute;inset:0;border-radius:12px;
+  background:radial-gradient(circle at 0% 0%,var(--accent-dim),transparent 60%);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.feat:hover{border-color:var(--accent-border);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.2)}
+.feat:hover::before{opacity:1}
+.feat-em{font-size:24px;margin-bottom:16px;display:block}
+.feat-t{font-size:15px;font-weight:700;margin-bottom:7px}
+.feat-d{font-size:13px;color:var(--ink2);line-height:1.65}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:52px}
+.stat{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:26px;text-align:center;transition:all .2s;
+}
+.stat:hover{border-color:var(--accent-border)}
+.stat-n{font-family:'JetBrains Mono',monospace;font-size:36px;font-weight:700;color:var(--accent);letter-spacing:-2px;line-height:1}
+.stat-l{font-size:13px;color:var(--ink2);margin-top:8px}
+
+/* ── ENDPOINT DOCS ── */
+.ep-list{display:flex;flex-direction:column;gap:10px}
+.ep{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.ep:hover{border-color:var(--border2)}
+.ep-head{
+  padding:15px 20px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;user-select:none;
+}
+.ep-method{
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+  padding:4px 9px;border-radius:5px;letter-spacing:1px;flex-shrink:0;
+}
+.GET{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border)}
+.POST{background:rgba(96,165,250,.08);color:var(--blue);border:1px solid rgba(96,165,250,.2)}
+.ep-path{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink);flex:1;font-weight:500}
+.ep-short{font-size:13px;color:var(--ink2);flex-shrink:0}
+.ep-chevron{color:var(--ink3);font-size:10px;transition:transform .25s;flex-shrink:0;margin-left:6px}
+.ep-chevron.open{transform:rotate(180deg)}
+.ep-body{display:none;border-top:1px solid var(--border);padding:20px}
+.ep-body.open{display:block;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.block-title{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink3);letter-spacing:2px;text-transform:uppercase;margin-bottom:9px;margin-top:18px}
+.block-title:first-child{margin-top:0}
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable th{text-align:left;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border)}
+.ptable td{padding:10px 12px;border-bottom:1px solid rgba(30,42,58,.4);color:var(--ink2);vertical-align:top;line-height:1.55}
+.ptable td:first-child{font-family:'JetBrains Mono',monospace;color:var(--blue);white-space:nowrap}
+[data-theme="light"] .ptable td{border-bottom-color:var(--border)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px}
+.badge-req{background:var(--red-dim);border:1px solid var(--red-border);color:var(--red)}
+.badge-opt{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.18);color:var(--blue)}
+.codeblock{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink2);
+  overflow-x:auto;line-height:1.75;position:relative;white-space:pre;
+  margin-top:0;
+}
+.codeblock .k{color:var(--blue)}
+.codeblock .s{color:#86c8f5}
+.codeblock .ky{color:var(--accent)}
+.codeblock .v{color:var(--yellow)}
+.codeblock .c{color:var(--ink3)}
+.cp-btn{
+  position:absolute;top:10px;right:10px;
+  padding:4px 10px;border-radius:6px;
+  background:var(--card);border:1px solid var(--border);
+  color:var(--ink3);font-size:10px;font-family:'JetBrains Mono',monospace;
+  transition:all .2s;cursor:pointer;
+}
+.cp-btn:hover{color:var(--ink);border-color:var(--accent)}
+.ep-note{font-size:13px;color:var(--ink2);line-height:1.7;margin-top:2px}
+.debug-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+.debug-table th{text-align:left;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border)}
+.debug-table td{padding:9px 12px;border-bottom:1px solid rgba(30,42,58,.4);color:var(--ink2);font-size:13px;line-height:1.5;vertical-align:top}
+.debug-table td:first-child{font-family:'JetBrains Mono',monospace;color:var(--accent);white-space:nowrap}
+[data-theme="light"] .debug-table td{border-bottom-color:var(--border)}
+
+/* ── ACCOUNT GUIDE ── */
+.guide-box{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:28px;margin-top:32px;
+}
+
+/* ── CONTACT ── */
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.cc{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:22px;display:flex;align-items:center;gap:14px;
+  transition:all .2s;cursor:pointer;
+}
+.cc:hover{border-color:var(--accent-border);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
+.cc-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.bg-tg{background:rgba(96,165,250,.1)}
+.bg-wa{background:rgba(74,222,128,.1)}
+.bg-dev{background:rgba(251,191,36,.1)}
+.cc-t{font-size:14px;font-weight:700;margin-bottom:3px}
+.cc-s{font-size:13px;color:var(--ink2)}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--border);
+  padding:32px 24px;
+  text-align:center;
+}
+.foot-name{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;letter-spacing:2px;margin-bottom:8px}
+.foot-name b{color:var(--accent)}
+.foot-sub{font-size:13px;color:var(--ink2);line-height:1.7}
+.foot-sub a{color:var(--ink2);transition:color .2s}
+.foot-sub a:hover{color:var(--accent)}
+
+/* ── MODAL ── */
+.overlay{
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.overlay.show{display:flex;animation:fadeIn .2s ease}
+.modal{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:28px;width:100%;max-width:440px;
+  position:relative;box-shadow:var(--shadow);
+}
+.modal-x{
+  position:absolute;top:16px;right:16px;
+  width:28px;height:28px;border-radius:6px;background:var(--card2);
+  color:var(--ink2);font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.modal-x:hover{background:var(--red-dim);color:var(--red)}
+.modal-t{font-size:20px;font-weight:800;margin-bottom:6px;letter-spacing:-.5px}
+.modal-d{font-size:13px;color:var(--ink2);margin-bottom:20px;line-height:1.65}
+.dev-card{display:flex;align-items:center;gap:14px;padding:16px;background:var(--card2);border-radius:10px}
+.dev-av{width:44px;height:44px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#080b0f;flex-shrink:0}
+.dev-n{font-weight:700;font-size:15px;margin-bottom:3px}
+.dev-r{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.5px}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .5s ease,transform .5s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── REAL-TIME INDICATOR ── */
+.rt-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink3);
+  letter-spacing:1px;padding:3px 8px;border-radius:4px;background:var(--card2);
+  border:1px solid var(--border);margin-left:8px;vertical-align:middle;
+}
+.rt-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 1.5s infinite}
+
+/* ── LAST UPDATED ── */
+#lastUpdated{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink3)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-brand">
+    <div class="nav-logo">KY</div>
+    <div class="nav-name">KY-<span>SHIRO</span></div>
+  </div>
+  <div class="nav-r">
+    <a href="#about" class="nav-link">Tentang</a>
+    <a href="#docs" class="nav-link">Docs</a>
+    <a href="#contact" class="nav-link">Kontak</a>
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle Theme" id="themeBtn">🌙</button>
+    <div class="dot-btn" onclick="toggleDot(event)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="2" cy="7" r="1.5" fill="currentColor"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/></svg>
+      <div class="dot-menu" id="dotMenu">
+        <div class="dm-item" onclick="openModal('statusModal');checkStatus(false)"><div class="dm-icon">📡</div>Cek Status Live</div>
+        <div class="dm-sep"></div>
+        <a href="https://t.me/username_kiki" target="_blank" class="dm-item"><div class="dm-icon">✈️</div>Telegram</a>
+        <div class="dm-item" onclick="openModal('devModal')"><div class="dm-icon">👤</div>Developer</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section>
+  <div class="hero">
+    <div class="hero-bg">
+      <div class="hero-bg-grid"></div>
+      <div class="hero-bg-glow"></div>
+    </div>
+    <div class="chip"><span class="chip-dot"></span>Multi-Account · iVAS SMS</div>
+    <div class="hero-eyebrow">OTP Forwarding API v2.0</div>
+    <h1 class="hero-title">
+      <span class="t1">SMS OTP</span>
+      <span class="t2">API Bridge</span>
+    </h1>
+    <p class="hero-desc">Nyambung langsung ke iVAS SMS, support multi-akun biar makin banyak nomor yang bisa dipantau. Cocok banget buat forward OTP ke Telegram bot atau keperluan lain yang butuh kode SMS masuk.</p>
+    <div class="hero-cta">
+      <a href="#docs" class="btn-main">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2h10v10H2z" stroke="currentColor" stroke-width="1.5" rx="1"/><path d="M4 5h6M4 7.5h6M4 10h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Lihat Dokumentasi
+      </a>
+      <button class="btn-ghost" onclick="openModal('statusModal');checkStatus(false)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.4"/><circle cx="7" cy="7" r="2" fill="currentColor"/></svg>
+        Cek Status Live
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- STATUS BAR -->
+<div class="status-wrap">
+  <div class="status-bar">
+    <div class="sb-item">
+      <div class="sb-label">Status API</div>
+      <div class="sb-val"><span class="sb-dot checking" id="sDot"></span><span id="sText">Mengecek...</span></div>
+    </div>
+    <div class="sb-item">
+      <div class="sb-label">iVAS Login</div>
+      <div class="sb-val" id="sLogin">—</div>
+    </div>
+    <div class="sb-item">
+      <div class="sb-label">Developer</div>
+      <div class="sb-val">Kiki Faizal</div>
+    </div>
+    <div class="sb-item">
+      <div class="sb-label">Versi</div>
+      <div class="sb-val" style="color:var(--accent)">v2.0</div>
+    </div>
+  </div>
+  <div style="text-align:right;margin-top:8px;display:flex;align-items:center;justify-content:flex-end;gap:8px">
+    <span id="lastUpdated"></span>
+    <span class="rt-badge"><span class="rt-dot"></span>Real-time</span>
+  </div>
+</div>
+
+<div class="divider" style="margin-top:32px"></div>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="section-wrap">
+    <div class="s-eyebrow">// Tentang</div>
+    <h2 class="s-title reveal">Apa itu KY-SHIRO API?</h2>
+    <p class="s-desc reveal">API ini nyambung langsung ke iVAS SMS, support multi-akun biar makin banyak nomor yang bisa dipantau. Cocok banget buat forward OTP ke Telegram bot atau keperluan lain yang butuh kode SMS masuk.</p>
+
+    <!-- STATS -->
+    <div class="stats-grid reveal">
+      <div class="stat">
+        <div class="stat-n" id="stRanges">—</div>
+        <div class="stat-l">Range Aktif</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="stNumbers">—</div>
+        <div class="stat-l">Nomor Tersedia</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">8+</div>
+        <div class="stat-l">Endpoint API</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">∞</div>
+        <div class="stat-l">Negara Support</div>
+      </div>
+    </div>
+
+    <!-- FEATURE CARDS -->
+    <div class="features-grid">
+      <div class="feat reveal">
+        <span class="feat-em">⚡</span>
+        <div class="feat-t">Real-time</div>
+        <div class="feat-d">OTP yang masuk langsung bisa diambil tanpa delay, semua range sekaligus.</div>
+      </div>
+      <div class="feat reveal">
+        <span class="feat-em">👥</span>
+        <div class="feat-t">Multi-Akun</div>
+        <div class="feat-d">Bisa login ke banyak akun iVAS sekaligus, semua range dari semua akun digabung jadi satu response.</div>
+      </div>
+      <div class="feat reveal">
+        <span class="feat-em">🌍</span>
+        <div class="feat-t">Multi Negara</div>
+        <div class="feat-d">Ivory Coast, Zimbabwe, Togo, Madagascar — semua range yang ada di akun lo masuk semua.</div>
+      </div>
+      <div class="feat reveal">
+        <span class="feat-em">🤖</span>
+        <div class="feat-t">Bot-ready</div>
+        <div class="feat-d">Response JSON bersih dan konsisten, langsung bisa dipakai sama Telegram bot tanpa preprocessing.</div>
+      </div>
+      <div class="feat reveal">
+        <span class="feat-em">🔒</span>
+        <div class="feat-t">CF Bypass</div>
+        <div class="feat-d">Menggunakan cloudscraper dengan browser fingerprint rotation untuk menembus proteksi Cloudflare.</div>
+      </div>
+      <div class="feat reveal">
+        <span class="feat-em">🍪</span>
+        <div class="feat-t">Cookie Persist</div>
+        <div class="feat-d">Cookies disimpan ke file agar tidak perlu login ulang setiap request. Auto re-login jika expired.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DOCS -->
+<section class="section" id="docs">
+  <div class="section-wrap">
+    <div class="s-eyebrow">// Dokumentasi</div>
+    <h2 class="s-title reveal">Semua Endpoint</h2>
+    <p class="s-desc reveal">
+      Base URL: <code style="color:var(--accent);font-size:14px">https://apikyshiro.vercel.app</code>
+    </p>
+
+    <div class="ep-list">
+
+      <!-- /sms -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/sms</span>
+          <span class="ep-short">Ambil OTP berdasarkan tanggal</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Ambil semua OTP dari semua akun iVAS berdasarkan tanggal dan mode yang dipilih. Mode <code>live</code> tidak butuh parameter date.</p>
+          <div class="block-title">Parameter</div>
+          <table class="ptable">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Status</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr><td>date</td><td>string</td><td><span class="badge badge-req">Wajib*</span></td><td>Tanggal SMS. Format: <code>DD/MM/YYYY</code>. Tidak wajib jika mode=live.</td></tr>
+              <tr><td>to_date</td><td>string</td><td><span class="badge badge-opt">Opsional</span></td><td>Tanggal akhir range. Default sama dengan <code>date</code>.</td></tr>
+              <tr><td>mode</td><td>string</td><td><span class="badge badge-opt">Opsional</span></td><td>Sumber SMS: <code>received</code> (default), <code>live</code>, atau <code>both</code>.</td></tr>
+            </tbody>
+          </table>
+          <div class="block-title">Contoh Request</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /sms?date=08/03/2026&mode=received</div>
+          <div class="block-title" style="margin-top:14px">Contoh Response</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>{
+  <span class="ky">"status"</span>: <span class="s">"success"</span>,
+  <span class="ky">"mode"</span>: <span class="s">"received"</span>,
+  <span class="ky">"from_date"</span>: <span class="s">"08/03/2026"</span>,
+  <span class="ky">"to_date"</span>: <span class="s">"08/03/2026"</span>,
+  <span class="ky">"total"</span>: <span class="v">2</span>,
+  <span class="ky">"accounts_used"</span>: <span class="v">4</span>,
+  <span class="ky">"otp_messages"</span>: [
+    {
+      <span class="ky">"range"</span>: <span class="s">"IVORY COAST 3878"</span>,
+      <span class="ky">"phone_number"</span>: <span class="s">"2250711220970"</span>,
+      <span class="ky">"otp_message"</span>: <span class="s">"Your OTP is 482910"</span>,
+      <span class="ky">"source"</span>: <span class="s">"received"</span>,
+      <span class="ky">"account"</span>: <span class="s">"email@gmail.com"</span>
+    }
+  ]
+}</div>
+        </div>
+      </div>
+
+      <!-- /health -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/health</span>
+          <span class="ep-short">Cek status login semua akun</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Melakukan login ke semua akun iVAS dan mengembalikan status masing-masing akun. Digunakan untuk memantau kesehatan API secara real-time.</p>
+          <div class="block-title">Parameter</div>
+          <p style="font-size:13px;color:var(--ink2);font-style:italic">Tidak ada parameter yang dibutuhkan.</p>
+          <div class="block-title" style="margin-top:14px">Contoh Request</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /health</div>
+          <div class="block-title" style="margin-top:14px">Contoh Response (Online)</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>{
+  <span class="ky">"status"</span>: <span class="s">"ok"</span>,
+  <span class="ky">"login"</span>: <span class="s">"success"</span>,
+  <span class="ky">"accounts_ok"</span>: <span class="v">3</span>,
+  <span class="ky">"accounts_total"</span>: <span class="v">4</span>,
+  <span class="ky">"details"</span>: [
+    { <span class="ky">"email"</span>: <span class="s">"akun1@gmail.com"</span>, <span class="ky">"login"</span>: <span class="s">"success"</span> },
+    { <span class="ky">"email"</span>: <span class="s">"akun2@gmail.com"</span>, <span class="ky">"login"</span>: <span class="s">"success"</span> },
+    { <span class="ky">"email"</span>: <span class="s">"akun3@gmail.com"</span>, <span class="ky">"login"</span>: <span class="s">"failed"</span>  }
+  ]
+}</div>
+        </div>
+      </div>
+
+      <!-- /accounts -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/accounts</span>
+          <span class="ep-short">List akun terdaftar</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Menampilkan daftar akun iVAS yang terdaftar di sistem. Password tidak ditampilkan demi keamanan.</p>
+          <div class="block-title">Parameter</div>
+          <p style="font-size:13px;color:var(--ink2);font-style:italic">Tidak ada parameter yang dibutuhkan.</p>
+          <div class="block-title" style="margin-top:14px">Contoh Request</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /accounts</div>
+          <div class="block-title" style="margin-top:14px">Contoh Response</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>{
+  <span class="ky">"total"</span>: <span class="v">4</span>,
+  <span class="ky">"accounts"</span>: [
+    { <span class="ky">"index"</span>: <span class="v">1</span>, <span class="ky">"email"</span>: <span class="s">"akun1@gmail.com"</span> },
+    { <span class="ky">"index"</span>: <span class="v">2</span>, <span class="ky">"email"</span>: <span class="s">"akun2@gmail.com"</span> }
+  ]
+}</div>
+        </div>
+      </div>
+
+      <!-- /test -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/test</span>
+          <span class="ep-short">Cek semua range &amp; nomor</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Tampilkan semua range aktif beserta nomor-nomor yang terdaftar dari semua akun iVAS pada tanggal tertentu.</p>
+          <div class="block-title">Parameter</div>
+          <table class="ptable">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Status</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr><td>date</td><td>string</td><td><span class="badge badge-opt">Opsional</span></td><td>Tanggal pengecekan. Format: <code>DD/MM/YYYY</code>. Default: hari ini.</td></tr>
+            </tbody>
+          </table>
+          <div class="block-title" style="margin-top:14px">Contoh Request</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /test?date=08/03/2026</div>
+          <div class="block-title" style="margin-top:14px">Contoh Response</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>{
+  <span class="ky">"status"</span>: <span class="s">"ok"</span>,
+  <span class="ky">"date"</span>: <span class="s">"08/03/2026"</span>,
+  <span class="ky">"accounts_ok"</span>: <span class="v">4</span>,
+  <span class="ky">"total_ranges"</span>: <span class="v">12</span>,
+  <span class="ky">"total_numbers"</span>: <span class="v">48</span>,
+  <span class="ky">"ranges"</span>: [
+    {
+      <span class="ky">"account"</span>: <span class="s">"akun1@gmail.com"</span>,
+      <span class="ky">"range_name"</span>: <span class="s">"IVORY COAST 3878"</span>,
+      <span class="ky">"range_id"</span>: <span class="s">"IVORY_COAST_3878"</span>,
+      <span class="ky">"total_numbers"</span>: <span class="v">5</span>,
+      <span class="ky">"numbers"</span>: [<span class="s">"2250711220970"</span>, <span class="s">"2250711220971"</span>]
+    }
+  ]
+}</div>
+        </div>
+      </div>
+
+      <!-- /test/sms -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/test/sms</span>
+          <span class="ep-short">Cek OTP untuk 1 nomor spesifik</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Ambil isi SMS OTP untuk satu nomor spesifik dari range tertentu. Endpoint ini mencoba semua akun hingga menemukan SMS yang sesuai.</p>
+          <div class="block-title">Parameter</div>
+          <table class="ptable">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Status</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr><td>range</td><td>string</td><td><span class="badge badge-req">Wajib</span></td><td>Nama range iVAS. Contoh: <code>IVORY COAST 3878</code></td></tr>
+              <tr><td>number</td><td>string</td><td><span class="badge badge-req">Wajib</span></td><td>Nomor telepon yang dicari. Contoh: <code>2250711220970</code></td></tr>
+              <tr><td>date</td><td>string</td><td><span class="badge badge-opt">Opsional</span></td><td>Tanggal SMS. Format: <code>DD/MM/YYYY</code>. Default: hari ini.</td></tr>
+            </tbody>
+          </table>
+          <div class="block-title" style="margin-top:14px">Contoh Request</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /test/sms?date=08/03/2026&range=IVORY COAST 3878&number=2250711220970</div>
+          <div class="block-title" style="margin-top:14px">Contoh Response (Ditemukan)</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>{
+  <span class="ky">"status"</span>: <span class="s">"ok"</span>,
+  <span class="ky">"otp_found"</span>: <span class="v">true</span>,
+  <span class="ky">"account"</span>: <span class="s">"akun1@gmail.com"</span>,
+  <span class="ky">"range_name"</span>: <span class="s">"IVORY COAST 3878"</span>,
+  <span class="ky">"number"</span>: <span class="s">"2250711220970"</span>,
+  <span class="ky">"otp_message"</span>: <span class="s">"Your OTP code is 482910. Valid 5 mins."</span>
+}</div>
+        </div>
+      </div>
+
+      <!-- Number Management -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/numbers/test-list</span>
+          <span class="ep-short">Daftar test numbers iVAS</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Ambil daftar test numbers yang tersedia di iVAS dari semua akun. Data diambil via DataTables AJAX dari iVAS portal.</p>
+          <div class="block-title">Parameter</div>
+          <table class="ptable">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Status</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr><td>search</td><td>string</td><td><span class="badge badge-opt">Opsional</span></td><td>Filter pencarian nomor atau range.</td></tr>
+              <tr><td>length</td><td>integer</td><td><span class="badge badge-opt">Opsional</span></td><td>Jumlah baris yang dikembalikan. Default: <code>100</code>.</td></tr>
+            </tbody>
+          </table>
+          <div class="block-title" style="margin-top:14px">Contoh Request</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /numbers/test-list?search=ivory&length=50</div>
+        </div>
+      </div>
+
+      <!-- /numbers/add -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/numbers/add</span>
+          <span class="ep-short">Tambah nomor baru ke iVAS</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Menambahkan nomor baru ke sistem iVAS pada range tertentu. Endpoint ini melakukan POST ke iVAS portal secara otomatis.</p>
+          <div class="block-title">Parameter</div>
+          <table class="ptable">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Status</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr><td>range</td><td>string</td><td><span class="badge badge-req">Wajib</span></td><td>Nama range iVAS tempat nomor akan ditambahkan.</td></tr>
+              <tr><td>number</td><td>string</td><td><span class="badge badge-req">Wajib</span></td><td>Nomor telepon yang akan ditambahkan.</td></tr>
+            </tbody>
+          </table>
+          <div class="block-title" style="margin-top:14px">Contoh Request</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /numbers/add?range=IVORY COAST 3878&number=2250711220999</div>
+          <div class="block-title" style="margin-top:14px">Contoh Response</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>{
+  <span class="ky">"status"</span>: <span class="s">"ok"</span>,
+  <span class="ky">"success"</span>: <span class="v">true</span>,
+  <span class="ky">"account"</span>: <span class="s">"akun1@gmail.com"</span>,
+  <span class="ky">"number"</span>: <span class="s">"2250711220999"</span>,
+  <span class="ky">"message"</span>: <span class="s">"Number added successfully"</span>
+}</div>
+        </div>
+      </div>
+
+      <!-- /numbers/delete -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/numbers/delete</span>
+          <span class="ep-short">Hapus nomor dari iVAS</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Menghapus (return) nomor dari sistem iVAS. Sistem akan mencari nomor di semua akun dan menghapusnya dari akun yang memilikinya.</p>
+          <div class="block-title">Parameter</div>
+          <table class="ptable">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Status</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr><td>number</td><td>string</td><td><span class="badge badge-req">Wajib</span></td><td>Nomor telepon yang akan dihapus.</td></tr>
+              <tr><td>range</td><td>string</td><td><span class="badge badge-opt">Opsional</span></td><td>Nama range untuk mempercepat pencarian.</td></tr>
+            </tbody>
+          </table>
+          <div class="block-title" style="margin-top:14px">Contoh Request</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /numbers/delete?number=2250711220999&range=IVORY COAST 3878</div>
+          <div class="block-title" style="margin-top:14px">Contoh Response</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>{
+  <span class="ky">"status"</span>: <span class="s">"ok"</span>,
+  <span class="ky">"success"</span>: <span class="v">true</span>,
+  <span class="ky">"account"</span>: <span class="s">"akun1@gmail.com"</span>,
+  <span class="ky">"number"</span>: <span class="s">"2250711220999"</span>,
+  <span class="ky">"range_name"</span>: <span class="s">"IVORY COAST 3878"</span>,
+  <span class="ky">"message"</span>: <span class="s">"Number returned successfully"</span>
+}</div>
+        </div>
+      </div>
+
+      <!-- Cookies -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/cookies/set &nbsp;/cookies/view &nbsp;/cookies/clear</span>
+          <span class="ep-short">Manajemen cookies</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Endpoint untuk mengelola cookies iVAS secara manual. Berguna untuk inject cookies dari browser saat Cloudflare blocking otomatis login.</p>
+          <div class="block-title">Endpoint Detail</div>
+          <table class="debug-table">
+            <thead><tr><th>Endpoint</th><th>Method</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr><td>/cookies/set</td><td>GET / POST</td><td>Inject cookies dari browser secara manual. Parameter: <code>account</code> (email), <code>cookies</code> (string format <code>key=val;key2=val2</code>)</td></tr>
+              <tr><td>/cookies/view</td><td>GET</td><td>Lihat semua cookies tersimpan dari memory dan file kiki.json</td></tr>
+              <tr><td>/cookies/clear</td><td>GET</td><td>Hapus cookies. Parameter opsional: <code>account</code> (email). Tanpa parameter = hapus semua.</td></tr>
+            </tbody>
+          </table>
+          <div class="block-title" style="margin-top:14px">Contoh Request - Inject Cookies</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /cookies/set?account=email@gmail.com&cookies=laravel_session=xxx;XSRF-TOKEN=yyy</div>
+        </div>
+      </div>
+
+      <!-- Debug Endpoints -->
+      <div class="ep reveal">
+        <div class="ep-head" onclick="toggleEp(this)">
+          <span class="ep-method GET">GET</span>
+          <span class="ep-path">/debug/ranges-raw &nbsp;/debug/numbers &nbsp;/debug/sms</span>
+          <span class="ep-short">Debug endpoints</span>
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="ep-body">
+          <p class="ep-note">Endpoint debug untuk melihat raw response dari iVAS. Berguna saat troubleshooting parsing atau koneksi ke iVAS.</p>
+          <div class="block-title">Endpoint Detail</div>
+          <table class="debug-table">
+            <thead><tr><th>Endpoint</th><th>Parameter</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr><td>/debug/ranges-raw</td><td>date</td><td>Raw HTML ranges dari iVAS. Menampilkan HTML mentah + hasil parsing untuk debug.</td></tr>
+              <tr><td>/debug/numbers</td><td>date, range <span class="badge badge-req" style="font-size:9px">wajib</span></td><td>Cek nomor dari range tertentu beserta raw response HTML.</td></tr>
+              <tr><td>/debug/sms</td><td>date, range, number <span class="badge badge-req" style="font-size:9px">wajib</span></td><td>Raw SMS response untuk nomor tertentu.</td></tr>
+            </tbody>
+          </table>
+          <div class="block-title" style="margin-top:14px">Contoh Request</div>
+          <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>GET /debug/ranges-raw?date=08/03/2026
+GET /debug/numbers?date=08/03/2026&range=IVORY COAST 3878
+GET /debug/sms?date=08/03/2026&range=IVORY COAST 3878&number=2250711220970</div>
+        </div>
+      </div>
+
+    </div><!-- end ep-list -->
+
+    <!-- Account Guide -->
+    <div class="guide-box reveal">
+      <div class="s-eyebrow" style="margin-bottom:10px">// Cara Tambah Akun</div>
+      <p style="color:var(--ink2);font-size:14px;line-height:1.75;margin-bottom:16px">
+        Buka <code style="color:var(--accent)">app.py</code>, cari bagian <code style="color:var(--accent)">load_accounts()</code>, tambah akun baru di list:
+      </p>
+      <div class="codeblock"><button class="cp-btn" onclick="cp(this)">copy</button>return [
+    {<span class="ky">"email"</span>: <span class="s">"akun1@gmail.com"</span>, <span class="ky">"password"</span>: <span class="s">"password1"</span>},
+    {<span class="ky">"email"</span>: <span class="s">"akun2@gmail.com"</span>, <span class="ky">"password"</span>: <span class="s">"password2"</span>},  <span class="c"># ← tambah di sini</span>
+    {<span class="ky">"email"</span>: <span class="s">"akun3@gmail.com"</span>, <span class="ky">"password"</span>: <span class="s">"password3"</span>},  <span class="c"># ← atau di sini</span>
+]</div>
+      <p style="color:var(--ink2);font-size:13px;margin-top:14px;line-height:1.65">
+        Atau pakai environment variable di Vercel: <code style="color:var(--yellow)">IVAS_ACCOUNTS = email1:pass1,email2:pass2</code>
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+  <div class="section-wrap">
+    <div class="s-eyebrow">// Hubungi Kami</div>
+    <h2 class="s-title reveal">Ada yang mau ditanya?</h2>
+    <p class="s-desc reveal">Bug, request fitur, atau sekedar mau kenalan — langsung aja kontak developernya.</p>
+    <div class="contact-grid">
+      <a href="https://t.me/username_kiki" target="_blank" class="cc reveal">
+        <div class="cc-icon bg-tg">✈️</div>
+        <div><div class="cc-t">Telegram</div><div class="cc-s">@KikiFaizal</div></div>
+      </a>
+      <a href="https://wa.me/62xxxxxxxx" target="_blank" class="cc reveal">
+        <div class="cc-icon bg-wa">💬</div>
+        <div><div class="cc-t">WhatsApp</div><div class="cc-s">Chat via WA</div></div>
+      </a>
+      <div class="cc reveal" onclick="openModal('devModal')">
+        <div class="cc-icon bg-dev">👤</div>
+        <div><div class="cc-t">Developer</div><div class="cc-s">Kiki Faizal</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-name">KY-<b>SHIRO</b></div>
+  <div class="foot-sub">
+    Made by <a href="#">Kiki Faizal</a> &nbsp;·&nbsp;
+    Powered by <a href="https://www.ivasms.com" target="_blank">iVAS SMS</a> &nbsp;·&nbsp;
+    Hosted on <a href="https://vercel.com" target="_blank">Vercel</a>
+  </div>
+</footer>
+
+<!-- MODAL DEVELOPER -->
+<div class="overlay" id="devModal" onclick="if(event.target===this)closeModal('devModal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('devModal')">✕</button>
+    <div class="modal-t">Developer</div>
+    <div class="modal-d">Orang di balik KY-SHIRO API. Kalau ada masalah langsung tembak aja.</div>
+    <div class="dev-card">
+      <div class="dev-av">KF</div>
+      <div>
+        <div class="dev-n">Kiki Faizal</div>
+        <div class="dev-r">// Backend · API Engineer</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL STATUS -->
+<div class="overlay" id="statusModal" onclick="if(event.target===this)closeModal('statusModal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('statusModal')">✕</button>
+    <div class="modal-t">Status Live</div>
+    <div id="statusModalBody" style="color:var(--ink2);font-size:14px;margin-top:4px">Menghubungi server...</div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+const API = 'https://apibotivas1.vercel.app';
+let statusInterval = null;
+
+// ── THEME ──
+function toggleTheme(){
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
+  localStorage.setItem('kyshiro-theme', isDark ? 'light' : 'dark');
+}
+(function initTheme(){
+  const saved = localStorage.getItem('kyshiro-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('themeBtn').textContent = saved === 'dark' ? '🌙' : '☀️';
+})();
+
+// ── MENU DOT ──
+function toggleDot(e){
+  e.stopPropagation();
+  document.getElementById('dotMenu').classList.toggle('show');
+}
+document.addEventListener('click', () => document.getElementById('dotMenu').classList.remove('show'));
+
+// ── MODAL ──
+function openModal(id){ document.getElementById(id).classList.add('show') }
+function closeModal(id){ document.getElementById(id).classList.remove('show') }
+document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.overlay.show').forEach(m=>m.classList.remove('show')) });
+
+// ── ENDPOINT TOGGLE ──
+function toggleEp(head){
+  const body = head.nextElementSibling;
+  const chev = head.querySelector('.ep-chevron');
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+// ── COPY CODE ──
+function cp(btn){
+  const block = btn.closest('.codeblock');
+  const text = block.innerText.replace(/^copy\n/, '').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓'; btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.textContent = 'copy'; btn.style.color = '' }, 2000);
+  });
+}
+
+// ── DATE HELPER ──
+function todayStr(){
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+// ── STATUS CHECK — Real-time dari IVASMS ──
+async function checkStatus(openPopup = false){
+  const dot   = document.getElementById('sDot');
+  const txt   = document.getElementById('sText');
+  const login = document.getElementById('sLogin');
+  const body  = document.getElementById('statusModalBody');
+  const upd   = document.getElementById('lastUpdated');
+
+  dot.className = 'sb-dot checking';
+  txt.textContent = 'Mengecek...';
+
+  if(openPopup) openModal('statusModal');
+  if(body && openPopup) body.innerHTML = '<span style="color:var(--ink2)">Menghubungi server iVAS...</span>';
+
+  try {
+    const res  = await fetch(API + '/health', { signal: AbortSignal.timeout(16000) });
+    const data = await res.json();
+
+    // Logika: login success = Online, lainnya = Offline
+    const isOnline = data.login === 'success' || data.status === 'ok';
+
+    if(isOnline){
+      dot.className  = 'sb-dot online';
+      txt.textContent = 'Online';
+      login.innerHTML = '<span style="color:var(--accent);font-weight:700">✅ Login OK</span>';
+
+      const details = (data.details || []).map(d => `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <span style="width:7px;height:7px;border-radius:50%;background:${d.login==='success'?'var(--accent)':'var(--red)'};display:inline-block;flex-shrink:0"></span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--ink2);font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.email}</span>
+          <span style="color:${d.login==='success'?'var(--accent)':'var(--red)'};font-weight:700;font-size:12px;flex-shrink:0">${d.login==='success'?'OK':'GAGAL'}</span>
+        </div>`).join('');
+
+      if(body) body.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:10px;margin-bottom:16px">
+          <span style="width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;flex-shrink:0"></span>
+          <div>
+            <div style="font-weight:700;color:var(--accent)">API Online</div>
+            <div style="font-size:12px;color:var(--ink2);margin-top:2px">${data.accounts_ok || 1} dari ${data.accounts_total || '?'} akun aktif · iVAS terhubung</div>
+          </div>
+        </div>
+        <div>${details}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink3);margin-top:12px">Dicek: ${new Date().toLocaleTimeString('id-ID')}</div>`;
+
+      // Update stats
+      try{
+        const td = await fetch(API + '/test?date=' + todayStr(), { signal: AbortSignal.timeout(18000) });
+        const dd = await td.json();
+        if(dd.total_ranges !== undefined) document.getElementById('stRanges').textContent = dd.total_ranges;
+        if(dd.total_numbers !== undefined) document.getElementById('stNumbers').textContent = dd.total_numbers;
+      } catch(e) {}
+
+    } else {
+      throw new Error('login gagal');
+    }
+
+  } catch(e) {
+    dot.className  = 'sb-dot offline';
+    txt.textContent = 'Offline';
+    login.innerHTML = '<span style="color:var(--red);font-weight:700">❌ Gagal</span>';
+
+    if(body && openPopup) body.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--red-dim);border:1px solid var(--red-border);border-radius:10px">
+        <span style="width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0"></span>
+        <div>
+          <div style="font-weight:700;color:var(--red)">API Offline</div>
+          <div style="font-size:12px;color:var(--ink2);margin-top:2px">Login iVAS gagal atau server tidak merespons</div>
+        </div>
+      </div>`;
+  }
+
+  upd.textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
+}
+
+// ── REAL-TIME POLLING (30 detik) ──
+function startRealtime(){
+  checkStatus(false);
+  statusInterval = setInterval(() => checkStatus(false), 30000);
+}
+
+// ── SCROLL REVEAL ──
+function initReveal(){
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target) } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  startRealtime();
+  initReveal();
+});
+</script>
+</body>
+</html>
